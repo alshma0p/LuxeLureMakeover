@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: telederma
+      POSTGRES_PASSWORD: telederma
+      POSTGRES_DB: telederma
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api:
+    build: ./apps/api
+    environment:
+      TELEDERMA_DATABASE_URL: postgresql+psycopg2://telederma:telederma@db:5432/telederma
+      TELEDERMA_FRONTEND_URL: http://localhost:3000
+      TELEDERMA_PAYMENT_PROVIDER: none
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
